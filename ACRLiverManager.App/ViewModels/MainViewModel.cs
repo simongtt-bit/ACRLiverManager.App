@@ -77,11 +77,11 @@ public sealed class MainViewModel : INotifyPropertyChanged
         set => SetField(ref _statusText, value);
     }
 
-    private AsyncRelayCommand RescanCommand { get; }
-    private AsyncRelayCommand InstallCommand { get; }
-    private AsyncRelayCommand ActivateCommand { get; }
-    private AsyncRelayCommand DisableCommand { get; }
-    private AsyncRelayCommand UninstallCommand { get; }
+    public AsyncRelayCommand RescanCommand { get; }
+    public AsyncRelayCommand InstallCommand { get; }
+    public AsyncRelayCommand ActivateCommand { get; }
+    public AsyncRelayCommand DisableCommand { get; }
+    public AsyncRelayCommand UninstallCommand { get; }
 
     public RelayCommand BrowseGameRootCommand { get; }
 
