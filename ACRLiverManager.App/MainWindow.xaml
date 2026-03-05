@@ -30,7 +30,7 @@
             <TextBox Grid.Column="5" Text="{Binding InstallerRoot, UpdateSourceTrigger=PropertyChanged}" />
             <Button Grid.Column="6" Content="Browse…" Command="{Binding BrowseInstallerRootCommand}" Margin="8,0,0,0" Padding="12,6"/>
 
-            <Button Grid.Column="8" Content="Rescan" Command="{Binding RescanCommand}" Padding="14,6"/>
+            <Button Grid.Column="8" Content="Rescan" Command="{Binding RescanAsyncCommand}" Padding="14,6"/>
         </Grid>
 
         <!-- Main layout -->
