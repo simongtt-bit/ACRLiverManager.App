@@ -8,30 +8,39 @@
         <Border DockPanel.Dock="Bottom" Padding="10" Background="#EEE" CornerRadius="6" Margin="0,10,0,0">
             <TextBlock Text="{Binding StatusText}" />
         </Border>
-        
+
+        <!-- Top bar: paths + actions -->
         <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
-  <Grid.ColumnDefinitions>
-    <ColumnDefinition Width="Auto"/>
-    <ColumnDefinition Width="*"/>
-    <ColumnDefinition Width="Auto"/>
-    <ColumnDefinition Width="20"/>
-    <ColumnDefinition Width="Auto"/>
-    <ColumnDefinition Width="*"/>
-    <ColumnDefinition Width="Auto"/>
-    <ColumnDefinition Width="20"/>
-    <ColumnDefinition Width="Auto"/>
-  </Grid.ColumnDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="20"/>
 
-  <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="Game root:" Margin="0,0,8,0"/>
-  <TextBox Grid.Column="1" Text="{Binding GameRoot, UpdateSourceTrigger=PropertyChanged}" />
-  <Button Grid.Column="2" Content="Browse…" Command="{Binding BrowseGameRootCommand}" Margin="8,0,0,0" Padding="12,6"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="20"/>
 
-  <TextBlock Grid.Column="4" VerticalAlignment="Center" Text="Installer root:" Margin="0,0,8,0"/>
-  <TextBox Grid.Column="5" Text="{Binding InstallerRoot, UpdateSourceTrigger=PropertyChanged}" />
-  <Button Grid.Column="6" Content="Browse…" Command="{Binding BrowseInstallerRootCommand}" Margin="8,0,0,0" Padding="12,6"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="10"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
 
-  <Button Grid.Column="8" Content="Rescan" Command="{Binding RescanCommand}" Padding="14,6"/>
-</Grid>
+            <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="Game root:" Margin="0,0,8,0"/>
+            <TextBox Grid.Column="1" Text="{Binding GameRoot, UpdateSourceTrigger=PropertyChanged}" />
+            <Button Grid.Column="2" Content="Browse…" Command="{Binding BrowseGameRootCommand}" Margin="8,0,0,0" Padding="12,6"/>
+
+            <TextBlock Grid.Column="4" VerticalAlignment="Center" Text="Installer root:" Margin="0,0,8,0"/>
+            <TextBox Grid.Column="5" Text="{Binding InstallerRoot, UpdateSourceTrigger=PropertyChanged}" />
+            <Button Grid.Column="6" Content="Browse…" Command="{Binding BrowseInstallerRootCommand}" Margin="8,0,0,0" Padding="12,6"/>
+
+            <!-- New: Import archive -->
+            <Button Grid.Column="8" Content="Import archive" Command="{Binding ImportArchiveCommand}" Padding="14,6"/>
+
+            <!-- Existing: Rescan -->
+            <Button Grid.Column="10" Content="Rescan" Command="{Binding RescanCommand}" Padding="14,6"/>
+        </Grid>
 
         <!-- Main layout -->
         <Grid>
@@ -97,5 +106,4 @@
             </GroupBox>
         </Grid>
     </DockPanel>
-
 </Window>

@@ -17,6 +17,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private readonly ILiveryInstallerService _installer;
     private readonly IFolderPicker _folderPicker;
     private readonly IAppSettingsService _settingsService;
+    private readonly IArchiveImportService _archiveImportService;
 
     private string _gameRoot = "";
     private string _installerRoot = "";
@@ -34,6 +35,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         set
         {
             if (!SetField(ref _selectedCar, value)) return;
+            RefreshCommandStates();                 // ensures ImportArchive enables/disables correctly
             _ = LoadLiveriesForSelectedCarAsync();
         }
     }
@@ -82,9 +84,9 @@ public sealed class MainViewModel : INotifyPropertyChanged
     public AsyncRelayCommand ActivateCommand { get; }
     public AsyncRelayCommand DisableCommand { get; }
     public AsyncRelayCommand UninstallCommand { get; }
+    public AsyncRelayCommand ImportArchiveCommand { get; }
 
     public RelayCommand BrowseGameRootCommand { get; }
-
     public RelayCommand BrowseInstallerRootCommand { get; }
 
     public MainViewModel(
@@ -92,13 +94,15 @@ public sealed class MainViewModel : INotifyPropertyChanged
         ILiveryRepositoryService repo,
         ILiveryInstallerService installer,
         IFolderPicker folderPicker,
-        IAppSettingsService settingsService)
+        IAppSettingsService settingsService,
+        IArchiveImportService archiveImportService)
     {
         _gamePaths = gamePaths;
         _repo = repo;
         _installer = installer;
         _folderPicker = folderPicker;
         _settingsService = settingsService;
+        _archiveImportService = archiveImportService;
 
         BrowseGameRootCommand = new RelayCommand(BrowseGameRoot);
         BrowseInstallerRootCommand = new RelayCommand(BrowseInstallerRoot);
@@ -109,6 +113,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
         DisableCommand = new AsyncRelayCommand(DisableAsync, CanOperateOnSelectedLivery);
         UninstallCommand = new AsyncRelayCommand(UninstallAsync, CanOperateOnSelectedLivery);
 
+        ImportArchiveCommand = new AsyncRelayCommand(ImportArchiveAsync, CanImportArchive);
+
         _ = LoadSettingsAsync();
     }
 
@@ -117,6 +123,9 @@ public sealed class MainViewModel : INotifyPropertyChanged
            && Directory.Exists(InstallerRoot)
            && _gamePaths.IsValidGameRoot(GameRoot)
            && _canWriteToPaks;
+
+    private bool CanImportArchive()
+        => Directory.Exists(InstallerRoot) && SelectedCar is not null;
 
     private void EvaluatePaksWriteAccess()
     {
@@ -142,6 +151,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private void RefreshCommandStates()
     {
         RescanCommand.RaiseCanExecuteChanged();
+        ImportArchiveCommand.RaiseCanExecuteChanged();
+
         InstallCommand.RaiseCanExecuteChanged();
         ActivateCommand.RaiseCanExecuteChanged();
         DisableCommand.RaiseCanExecuteChanged();
@@ -155,6 +166,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
             StatusText = "Scanning cars...";
             Cars.Clear();
             Liveries.Clear();
+            SelectedCar = null;
+            SelectedLivery = null;
 
             var cars = await _repo.ScanCarsAsync(InstallerRoot);
             foreach (var c in cars)
@@ -204,7 +217,9 @@ public sealed class MainViewModel : INotifyPropertyChanged
                 Liveries.Add(vm);
             }
 
-            StatusText = pkgs.Count == 0 ? "No valid liveries found for this car." : $"Found {pkgs.Count} liveries.";
+            StatusText = pkgs.Count == 0
+                ? "No valid liveries found for this car."
+                : $"Found {pkgs.Count} liveries.";
         }
         catch (Exception ex)
         {
@@ -249,8 +264,6 @@ public sealed class MainViewModel : INotifyPropertyChanged
     {
         if (SelectedCar is null || SelectedLivery is null) return null;
 
-        // Rebuild package from VM + known folder structure (scanner already validated it).
-        // For correctness you’d cache the LiveryPackage list; this is MVP-friendly.
         var folder = SelectedLivery.SourceFolder;
 
         var pak = Directory.EnumerateFiles(folder, "*.pak").FirstOrDefault();
@@ -361,6 +374,69 @@ public sealed class MainViewModel : INotifyPropertyChanged
         }
     }
 
+    private async Task ImportArchiveAsync()
+    {
+        try
+        {
+            if (!Directory.Exists(InstallerRoot))
+            {
+                StatusText = "Select a valid installer root first.";
+                return;
+            }
+
+            if (SelectedCar is null)
+            {
+                StatusText = "Select a car first (import needs a carId).";
+                return;
+            }
+
+            var dlg = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "Archives (*.zip;*.rar;*.7z)|*.zip;*.rar;*.7z|All files (*.*)|*.*",
+                Multiselect = false,
+                Title = "Import livery archive"
+            };
+
+            if (dlg.ShowDialog() != true)
+                return;
+
+            var archivePath = dlg.FileName;
+
+            StatusText = "Analyzing archive...";
+            var analysis = await _archiveImportService.AnalyzeArchiveAsync(archivePath, CancellationToken.None);
+
+            if (analysis.Variants.Count == 0)
+            {
+                StatusText = "No valid livery files found in that archive.";
+                return;
+            }
+
+            // MVP: liveryId from archive filename (later: prompt user)
+            var liveryId = Path.GetFileNameWithoutExtension(archivePath);
+
+            StatusText = $"Importing {analysis.Variants.Count} variant(s)...";
+            var selection = new ImportSelection(
+                CarId: SelectedCar.CarId,
+                LiveryId: liveryId,
+                VariantIdsToImport: Array.Empty<string>()
+            );
+
+            await _archiveImportService.ImportAsync(analysis, InstallerRoot, selection, CancellationToken.None);
+
+            StatusText = "Import complete. Refreshing...";
+            await LoadLiveriesForSelectedCarAsync();
+            StatusText = "Ready.";
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"Import failed: {ex.Message}";
+        }
+        finally
+        {
+            RefreshCommandStates();
+        }
+    }
+
     public event PropertyChangedEventHandler? PropertyChanged;
 
     private bool SetField<T>(ref T field, T value, [CallerMemberName] string? name = null)
@@ -370,7 +446,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         return true;
     }
-    
+
     private async Task LoadSettingsAsync()
     {
         try
@@ -395,7 +471,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         s.InstallerRoot = InstallerRoot;
         await _settingsService.SaveAsync(s);
     }
-    
+
     private void BrowseGameRoot()
     {
         var selected = _folderPicker.PickFolder("Select Assetto Corsa Rally game root", GameRoot);
