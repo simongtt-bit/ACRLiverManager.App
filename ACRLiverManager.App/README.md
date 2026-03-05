@@ -114,15 +114,3 @@ Because filenames alone can be ambiguous, ACRLM works best when it maintains a s
 - Async file scanning/copying should be `async Task` with proper exception handling
 
 ---
-
-## Troubleshooting
-
-### “Rescan does nothing”
-Most commonly this is a command binding / CanExecute / exception issue.
-
-- Ensure the Rescan button is bound to an `ICommand` on the current `DataContext`
-- Ensure `CanExecute` is returning `true`
-- Check the Visual Studio Output window for WPF binding errors
-- Wrap the rescan logic to surface exceptions (MessageBox/log)
-
-See the repo docs / code comments for the recommended `AsyncRelayCommand` pattern.
