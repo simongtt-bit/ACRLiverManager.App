@@ -16,6 +16,8 @@ public static class ServiceRegistry
         services.AddSingleton<IInstallRegistryService, InstallRegistryService>();
         services.AddSingleton<ILiveryRepositoryService, LiveryRepositoryService>();
         services.AddSingleton<ILiveryInstallerService, LiveryInstallerService>();
+        services.AddSingleton<IFolderPicker, FolderPicker>();
+        services.AddSingleton<IAppSettingsService, AppSettingsService>();
 
         // VMs
         services.AddSingleton<MainViewModel>();

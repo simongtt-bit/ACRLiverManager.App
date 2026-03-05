@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows.Media.Imaging;
 using ACRLiverManager.App.Commands;
+using ACRLiverManager.App.Services;
 using AcrLiveryManager.Core.Models;
 using AcrLiveryManager.Core.Services;
 
@@ -14,6 +15,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private readonly IGamePathService _gamePaths;
     private readonly ILiveryRepositoryService _repo;
     private readonly ILiveryInstallerService _installer;
+    private readonly IFolderPicker _folderPicker;
+    private readonly IAppSettingsService _settingsService;
 
     private string _gameRoot = "";
     private string _installerRoot = "";
@@ -24,6 +27,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
     public ObservableCollection<LiveryVm> Liveries { get; } = [];
 
     private CarVm? _selectedCar;
+
     public CarVm? SelectedCar
     {
         get => _selectedCar;
@@ -35,6 +39,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
     }
 
     private LiveryVm? _selectedLivery;
+
     public LiveryVm? SelectedLivery
     {
         get => _selectedLivery;
@@ -78,17 +83,33 @@ public sealed class MainViewModel : INotifyPropertyChanged
     public AsyncRelayCommand DisableCommand { get; }
     public AsyncRelayCommand UninstallCommand { get; }
 
-    public MainViewModel(IGamePathService gamePaths, ILiveryRepositoryService repo, ILiveryInstallerService installer)
+    public RelayCommand BrowseGameRootCommand { get; }
+
+    public RelayCommand BrowseInstallerRootCommand { get; }
+
+    public MainViewModel(
+        IGamePathService gamePaths,
+        ILiveryRepositoryService repo,
+        ILiveryInstallerService installer,
+        IFolderPicker folderPicker,
+        IAppSettingsService settingsService)
     {
         _gamePaths = gamePaths;
         _repo = repo;
         _installer = installer;
+        _folderPicker = folderPicker;
+        _settingsService = settingsService;
+
+        BrowseGameRootCommand = new RelayCommand(BrowseGameRoot);
+        BrowseInstallerRootCommand = new RelayCommand(BrowseInstallerRoot);
 
         RescanCommand = new AsyncRelayCommand(RescanAsync, () => Directory.Exists(InstallerRoot));
         InstallCommand = new AsyncRelayCommand(InstallAsync, CanOperateOnSelectedLivery);
         ActivateCommand = new AsyncRelayCommand(ActivateAsync, CanOperateOnSelectedLivery);
         DisableCommand = new AsyncRelayCommand(DisableAsync, CanOperateOnSelectedLivery);
         UninstallCommand = new AsyncRelayCommand(UninstallAsync, CanOperateOnSelectedLivery);
+
+        _ = LoadSettingsAsync();
     }
 
     private bool CanOperateOnSelectedLivery()
@@ -255,7 +276,11 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private async Task InstallAsync()
     {
         var pkg = GetSelectedPackage();
-        if (pkg is null) { StatusText = "Invalid livery selection."; return; }
+        if (pkg is null)
+        {
+            StatusText = "Invalid livery selection.";
+            return;
+        }
 
         try
         {
@@ -273,7 +298,11 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private async Task ActivateAsync()
     {
         var pkg = GetSelectedPackage();
-        if (pkg is null) { StatusText = "Invalid livery selection."; return; }
+        if (pkg is null)
+        {
+            StatusText = "Invalid livery selection.";
+            return;
+        }
 
         try
         {
@@ -291,7 +320,11 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private async Task DisableAsync()
     {
         var pkg = GetSelectedPackage();
-        if (pkg is null) { StatusText = "Invalid livery selection."; return; }
+        if (pkg is null)
+        {
+            StatusText = "Invalid livery selection.";
+            return;
+        }
 
         try
         {
@@ -309,7 +342,11 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private async Task UninstallAsync()
     {
         var pkg = GetSelectedPackage();
-        if (pkg is null) { StatusText = "Invalid livery selection."; return; }
+        if (pkg is null)
+        {
+            StatusText = "Invalid livery selection.";
+            return;
+        }
 
         try
         {
@@ -332,5 +369,48 @@ public sealed class MainViewModel : INotifyPropertyChanged
         field = value;
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         return true;
+    }
+    
+    private async Task LoadSettingsAsync()
+    {
+        try
+        {
+            var s = await _settingsService.LoadAsync();
+            GameRoot = s.GameRoot;
+            InstallerRoot = s.InstallerRoot;
+
+            if (s.AutoRescanOnStartup && Directory.Exists(InstallerRoot))
+                await RescanAsync();
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"Failed to load settings: {ex.Message}";
+        }
+    }
+
+    private async Task SaveSettingsAsync()
+    {
+        var s = await _settingsService.LoadAsync();
+        s.GameRoot = GameRoot;
+        s.InstallerRoot = InstallerRoot;
+        await _settingsService.SaveAsync(s);
+    }
+    
+    private void BrowseGameRoot()
+    {
+        var selected = _folderPicker.PickFolder("Select Assetto Corsa Rally game root", GameRoot);
+        if (string.IsNullOrWhiteSpace(selected)) return;
+
+        GameRoot = selected;
+        _ = SaveSettingsAsync();
+    }
+
+    private void BrowseInstallerRoot()
+    {
+        var selected = _folderPicker.PickFolder("Select livery installer root", InstallerRoot);
+        if (string.IsNullOrWhiteSpace(selected)) return;
+
+        InstallerRoot = selected;
+        _ = SaveSettingsAsync();
     }
 }
