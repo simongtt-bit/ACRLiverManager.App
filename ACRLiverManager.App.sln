@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ACRLiverManager.App", "ACRLiverManager.App\ACRLiverManager.App.csproj", "{479A529F-504E-47C1-8324-7DEC7156E08E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AcrLiveryManager.Core", "AcrLiveryManager.Core\AcrLiveryManager.Core.csproj", "{EC66B9B3-BCB9-40F8-92E0-F362E6ABD1B4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{479A529F-504E-47C1-8324-7DEC7156E08E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{479A529F-504E-47C1-8324-7DEC7156E08E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{479A529F-504E-47C1-8324-7DEC7156E08E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{479A529F-504E-47C1-8324-7DEC7156E08E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EC66B9B3-BCB9-40F8-92E0-F362E6ABD1B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC66B9B3-BCB9-40F8-92E0-F362E6ABD1B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC66B9B3-BCB9-40F8-92E0-F362E6ABD1B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC66B9B3-BCB9-40F8-92E0-F362E6ABD1B4}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
