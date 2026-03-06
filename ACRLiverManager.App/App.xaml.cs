@@ -12,10 +12,17 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+        WinSparkleUpdater.Initialize();
 
         var vm = _sp.GetRequiredService<MainViewModel>();
 
         var wnd = new MainWindow { DataContext = vm };
         wnd.Show();
+    }
+    
+    protected override void OnExit(ExitEventArgs e)
+    {
+        WinSparkleUpdater.Cleanup();
+        base.OnExit(e);
     }
 }

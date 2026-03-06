@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Windows;
 using System.Windows.Media.Imaging;
 using ACRLiverManager.App.Commands;
 using ACRLiverManager.App.Services;
@@ -157,6 +158,11 @@ public sealed class MainViewModel : INotifyPropertyChanged
         ActivateCommand.RaiseCanExecuteChanged();
         DisableCommand.RaiseCanExecuteChanged();
         UninstallCommand.RaiseCanExecuteChanged();
+    }
+    
+    private void CheckForUpdates_Click(object sender, RoutedEventArgs e)
+    {
+        WinSparkleUpdater.CheckForUpdates();
     }
 
     private async Task RescanAsync()

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0"
+     xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+
+    <channel>
+        <title>AcrLiveryManager Updates</title>
+        <link>
+            https://simongtt-bit.github.io/ACRLiverManager.App/appcast.xml
+        </link>
+        <description>AcrLiveryManager update feed</description>
+
+        <item>
+            <title>Version 0.2.0</title>
+
+            <pubDate>Fri, 06 Mar 2026 20:00:00 GMT</pubDate>
+
+            <sparkle:version>0.2.0</sparkle:version>
+            <sparkle:shortVersionString>0.2.0</sparkle:shortVersionString>
+
+            <enclosure
+                    url="https://github.com/simongtt-bit/ACRLiverManager.App/releases/download/v0.2.0/AcrLiveryManagerSetup.exe"
+                    sparkle:edSignature="SIGNATURE_GOES_HERE"
+                    length="12345678"
+                    type="application/octet-stream"/>
+
+        </item>
+
+    </channel>
+</rss>
