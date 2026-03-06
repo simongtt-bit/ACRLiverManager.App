@@ -41,7 +41,7 @@ public static class WinSparkleUpdater
         win_sparkle_set_appcast_url(
             "https://simongtt-bit.github.io/ACRLiverManager.App/appcast.xml");
 
-        var publicKey = "2VvDPhAu+hm57V/mxt/SbYudhsQ4IL/0geIRV9YXT4U=";
+        var publicKey = "EBp0pfeZWuyVowoH26ChvaVnAYPPOFyMq0Uf/lO+5aU=";
         var ok = win_sparkle_set_eddsa_public_key(publicKey);
         if (ok != 1)
             throw new InvalidOperationException("Invalid WinSparkle EdDSA public key.");

@@ -18,10 +18,10 @@
             <sparkle:shortVersionString>0.2.0</sparkle:shortVersionString>
 
             <enclosure
-                    url="https://github.com/simongtt-bit/ACRLiverManager.App/releases/download/v0.2.0/AcrLiveryManagerSetup.exe"
-                    sparkle:edSignature="SIGNATURE_GOES_HERE"
+                    url="https://github.com/simongtt-bit/ACRLiverManager.App/releases/download/v0.2.0/AcrLiveryManagerSetup-0.2.0.exe"
+                    sparkle:edSignature="xWB4RKUA/ziOUuMr0OpNuk2zAqMO15M0fkSlZeAjCW5fTxpYjqIfIqnyoozbMywOfBKAfD+l2cZ2R5SJU7IPBg=="
                     sparkle:os="windows"
-                    length="12345678"
+                    length="4021029"
                     type="application/octet-stream"/>
 
         </item>
