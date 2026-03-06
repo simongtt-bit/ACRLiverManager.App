@@ -20,6 +20,7 @@
             <enclosure
                     url="https://github.com/simongtt-bit/ACRLiverManager.App/releases/download/v0.2.0/AcrLiveryManagerSetup.exe"
                     sparkle:edSignature="SIGNATURE_GOES_HERE"
+                    sparkle:os="windows"
                     length="12345678"
                     type="application/octet-stream"/>
 
