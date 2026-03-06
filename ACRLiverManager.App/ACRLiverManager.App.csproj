@@ -5,8 +5,7 @@
         <TargetFramework>net8.0-windows</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
-        <UseWPF>true</UseWPF>
-        <ApplicationIcon>Resources\ACRLiveryManager.ico</ApplicationIcon>
+        <UseWPF>true</UseWPF>        
     </PropertyGroup>
 
     <ItemGroup>
