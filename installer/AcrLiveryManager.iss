@@ -1,7 +1,7 @@
 #define MyAppName "AcrLiveryManager"
 #define MyAppPublisher "Simon Roberts"
 #define MyAppExeName "ACRLiverManager.App.exe"
-#define MyAppVersion "0.2.0"
+#define MyAppVersion "0.2.1"
 #define MyAppId "{{8F38D74A-0E69-4A46-9F57-6D8A7D22C8D1}"
 
 [Setup]

@@ -10,18 +10,18 @@
         <description>AcrLiveryManager update feed</description>
 
         <item>
-            <title>Version 0.2.0</title>
+            <title>Version 0.2.1</title>
 
-            <pubDate>Fri, 06 Mar 2026 20:00:00 GMT</pubDate>
+            <pubDate>Fri, 06 Mar 2026 14:45:00 GMT</pubDate>
 
-            <sparkle:version>0.2.0</sparkle:version>
-            <sparkle:shortVersionString>0.2.0</sparkle:shortVersionString>
+            <sparkle:version>0.2.1</sparkle:version>
+            <sparkle:shortVersionString>0.2.1</sparkle:shortVersionString>
 
             <enclosure
-                    url="https://github.com/simongtt-bit/ACRLiverManager.App/releases/download/v0.2.0/AcrLiveryManagerSetup-0.2.0.exe"
-                    sparkle:edSignature="xWB4RKUA/ziOUuMr0OpNuk2zAqMO15M0fkSlZeAjCW5fTxpYjqIfIqnyoozbMywOfBKAfD+l2cZ2R5SJU7IPBg=="
+                    url="https://github.com/simongtt-bit/ACRLiverManager.App/releases/download/v0.2.1/AcrLiveryManagerSetup-0.2.1.exe"
+                    sparkle:edSignature="9dm9KBcEnysYq/l4ztfXjJs6ONjRf/9Hhy3OWF5kGhKbEufJfxZF5duyHcg82keBBYJ5dFmKY/wzhF8QvbrXCQ=="
                     sparkle:os="windows"
-                    length="4021029"
+                    length="4021341"
                     type="application/octet-stream"/>
 
         </item>
