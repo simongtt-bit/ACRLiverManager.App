@@ -1,0 +1,168 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build-release:
+    runs-on: windows-latest
+
+    env:
+      APP_NAME: AcrLiveryManager
+      APP_EXE: ACRLiverManager.App.exe
+      APPCAST_URL: https://simongtt-bit.github.io/ACRLiverManager.App/appcast.xml
+      REPO_RELEASE_BASE: https://github.com/${{ github.repository }}/releases/download
+      INSTALLER_BASENAME: AcrLiveryManagerSetup
+      PROJECT_PATH: .\ACRLiverManager.App\ACRLiverManager.App.csproj
+      ISS_PATH: .\installer\AcrLiveryManager.iss
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Derive version from tag
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}".TrimStart("v")
+          "APP_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "INSTALLER_NAME=${{ env.INSTALLER_BASENAME }}-$version.exe" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Setup Inno
+        shell: pwsh
+        run: |
+          choco install innosetup --no-progress -y
+
+      - name: Setup WinSparkle tools
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path .\tools | Out-Null
+          Invoke-WebRequest -Uri "https://github.com/vslavik/winsparkle/releases/latest/download/WinSparkle.zip" -OutFile .\tools\winsparkle.zip
+          Expand-Archive .\tools\winsparkle.zip -DestinationPath .\tools\winsparkle -Force
+
+      - name: Write WinSparkle private key
+        shell: pwsh
+        run: |
+          Set-Content -Path .\tools\private.pem -Value @'
+${{ secrets.WINSPARKLE_PRIVATE_KEY_PEM }}
+'@
+
+      - name: Update WinSparkle public key in source
+        shell: pwsh
+        run: |
+          $path = ".\ACRLiverManager.App\Services\WinSparkleUpdater.cs"
+          $content = Get-Content $path -Raw
+          $content = [regex]::Replace(
+            $content,
+            'win_sparkle_set_eddsa_public_key\(".*?"\);',
+            'win_sparkle_set_eddsa_public_key("${{ secrets.WINSPARKLE_PUBLIC_KEY }}");'
+          )
+          Set-Content $path $content
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Publish app
+        run: dotnet publish ${{ env.PROJECT_PATH }} -c Release -r win-x64 --self-contained false
+
+      - name: Update Inno version
+        shell: pwsh
+        run: |
+          $iss = Get-Content "${{ env.ISS_PATH }}" -Raw
+          $iss = [regex]::Replace($iss, '#define MyAppVersion ".*"', '#define MyAppVersion "${{ env.APP_VERSION }}"')
+          Set-Content "${{ env.ISS_PATH }}" $iss
+
+      - name: Build installer
+        shell: pwsh
+        run: |
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "${{ env.ISS_PATH }}"
+
+      - name: Sign installer for WinSparkle
+        id: sign_installer
+        shell: pwsh
+        run: |
+          $installer = ".\installer\Output\${{ env.INSTALLER_NAME }}"
+          $sigOutput = & .\tools\winsparkle\winsparkle-tool.exe sign -f .\tools\private.pem $installer
+          $signature = ($sigOutput | Select-String -Pattern '^[A-Za-z0-9+/=]+$' | Select-Object -First 1).Line
+          if (-not $signature) { throw "Could not parse WinSparkle signature output." }
+          "signature=$signature" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          $length = (Get-Item $installer).Length
+          "length=$length" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Generate appcast.xml
+        shell: pwsh
+        run: |
+          $pubDate = (Get-Date).ToUniversalTime().ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'")
+          $tag = "${{ github.ref_name }}"
+          $version = "${{ env.APP_VERSION }}"
+          $installerName = "${{ env.INSTALLER_NAME }}"
+          $signature = "${{ steps.sign_installer.outputs.signature }}"
+          $length = "${{ steps.sign_installer.outputs.length }}"
+          $downloadUrl = "${{ env.REPO_RELEASE_BASE }}/$tag/$installerName"
+
+          $xml = @"
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0"
+     xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+  <channel>
+    <title>AcrLiveryManager Updates</title>
+    <link>${{ env.APPCAST_URL }}</link>
+    <description>AcrLiveryManager update feed</description>
+    <item>
+      <title>Version $version</title>
+      <pubDate>$pubDate</pubDate>
+      <sparkle:version>$version</sparkle:version>
+      <sparkle:shortVersionString>$version</sparkle:shortVersionString>
+      <enclosure
+          url="$downloadUrl"
+          sparkle:edSignature="$signature"
+          sparkle:os="windows"
+          length="$length"
+          type="application/octet-stream"/>
+    </item>
+  </channel>
+</rss>
+"@
+          New-Item -ItemType Directory -Force -Path .\docs | Out-Null
+          Set-Content -Path .\docs\appcast.xml -Value $xml -Encoding UTF8
+          Set-Content -Path .\docs\.nojekyll -Value "" -Encoding UTF8
+
+      - name: Upload release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: .\installer\Output\${{ env.INSTALLER_NAME }}
+          body: |
+            ## Changes
+            - Automated release for ${{ env.APP_VERSION }}
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./docs
+
+  deploy-pages:
+    needs: build-release
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
